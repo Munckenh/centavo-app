@@ -9,7 +9,7 @@ android {
 
     defaultConfig {
         applicationId = "com.usc.centavo"
-        minSdk = 28
+        minSdk = 31
         targetSdk = 35
         versionCode = 1
         versionName = "1.0"
@@ -33,7 +33,7 @@ android {
 }
 
 dependencies {
-
+    implementation(libs.core.splashscreen)
     implementation(libs.appcompat)
     implementation(libs.material)
     implementation(libs.activity)
