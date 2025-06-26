@@ -2,6 +2,7 @@ package com.usc.centavo.view.activity;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.util.TypedValue;
 import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -28,7 +29,22 @@ public class HomeActivity extends AppCompatActivity {
         setContentView(R.layout.activity_home);
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
             Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
-            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
+            int horizontalPadding = (int) TypedValue.applyDimension(
+                    TypedValue.COMPLEX_UNIT_DIP,
+                    getResources().getDimensionPixelSize(R.dimen.horizontal_padding),
+                    getResources().getDisplayMetrics()
+            );
+            int verticalPadding = (int)TypedValue.applyDimension(
+                    TypedValue.COMPLEX_UNIT_DIP,
+                    getResources().getDimensionPixelSize(R.dimen.vertical_padding),
+                    getResources().getDisplayMetrics()
+            );
+            v.setPadding(
+                    systemBars.left + horizontalPadding,
+                    systemBars.top + verticalPadding,
+                    systemBars.right + horizontalPadding,
+                    systemBars.bottom + verticalPadding
+            );
             return insets;
         });
 

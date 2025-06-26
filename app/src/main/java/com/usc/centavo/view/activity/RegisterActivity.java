@@ -4,6 +4,7 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
+import android.util.TypedValue;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
@@ -35,7 +36,22 @@ public class RegisterActivity extends AppCompatActivity {
         setContentView(R.layout.activity_register);
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
             Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
-            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
+            int horizontalPadding = (int) TypedValue.applyDimension(
+                    TypedValue.COMPLEX_UNIT_DIP,
+                    getResources().getDimensionPixelSize(R.dimen.horizontal_padding),
+                    getResources().getDisplayMetrics()
+            );
+            int verticalPadding = (int)TypedValue.applyDimension(
+                    TypedValue.COMPLEX_UNIT_DIP,
+                    getResources().getDimensionPixelSize(R.dimen.vertical_padding),
+                    getResources().getDisplayMetrics()
+            );
+            v.setPadding(
+                    systemBars.left + horizontalPadding,
+                    systemBars.top + verticalPadding,
+                    systemBars.right + horizontalPadding,
+                    systemBars.bottom + verticalPadding
+            );
             return insets;
         });
 
