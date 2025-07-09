@@ -13,15 +13,6 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.Centavo">
         <activity
-            android:name=".view.activity.HomeActivity"
-            android:exported="false" />
-        <activity
-            android:name=".view.activity.RegisterActivity"
-            android:exported="false" />
-        <activity
-            android:name=".view.activity.LoginActivity"
-            android:exported="false" />
-        <activity
             android:name=".MainActivity"
             android:exported="true"
             android:theme="@style/Theme.Centavo.Splash">

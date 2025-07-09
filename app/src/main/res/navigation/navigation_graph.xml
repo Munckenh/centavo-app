@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/navigation_graph"
+    app:startDestination="@id/navigation_home">
+
+    <fragment
+        android:id="@+id/navigation_home"
+        android:name="com.usc.centavo.view.fragment.HomeFragment"
+        android:label="Home"
+        tools:layout="@layout/fragment_home">
+        <action
+            android:id="@+id/action_home_to_add_transaction"
+            app:destination="@id/navigation_add_transaction" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/navigation_transactions"
+        android:name="com.usc.centavo.view.fragment.TransactionsFragment"
+        android:label="Transactions"
+        tools:layout="@layout/fragment_transactions" />
+
+    <fragment
+        android:id="@+id/navigation_login"
+        android:name="com.usc.centavo.view.fragment.LoginFragment"
+        android:label="Login"
+        tools:layout="@layout/fragment_login">
+        <action
+            android:id="@+id/action_login_to_register"
+            app:destination="@id/navigation_register" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/navigation_register"
+        android:name="com.usc.centavo.view.fragment.RegisterFragment"
+        android:label="Register"
+        tools:layout="@layout/fragment_register" />
+
+    <fragment
+        android:id="@+id/navigation_profile"
+        android:name="com.usc.centavo.view.fragment.ProfileFragment"
+        android:label="Profile"
+        tools:layout="@layout/fragment_profile">
+        <action
+            android:id="@+id/action_profile_to_category_management"
+            app:destination="@id/navigation_category_management" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/navigation_add_transaction"
+        android:name="com.usc.centavo.view.fragment.AddTransactionFragment"
+        android:label="Add Transaction"
+        tools:layout="@layout/fragment_add_transaction" />
+
+    <fragment
+        android:id="@+id/navigation_edit_transaction"
+        android:name="com.usc.centavo.view.fragment.EditTransactionFragment"
+        tools:layout="@layout/fragment_edit_transaction">
+        <argument
+            android:name="transactionId"
+            app:argType="string" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/navigation_category_management"
+        android:name="com.usc.centavo.view.fragment.CategoryManagementFragment"
+        android:label="Manage Categories"
+        tools:layout="@layout/fragment_category_management" />
+
+    <action
+        android:id="@+id/action_global_to_edit_transaction"
+        app:destination="@id/navigation_edit_transaction" />
+
+    <action
+        android:id="@+id/action_global_to_login"
+        app:destination="@id/navigation_login"
+        app:popUpTo="@id/navigation_graph"
+        app:popUpToInclusive="true" />
+
+    <action
+        android:id="@+id/action_global_to_home"
+        app:destination="@id/navigation_home"
+        app:popUpTo="@id/navigation_graph"
+        app:popUpToInclusive="true" />
+
+</navigation>
