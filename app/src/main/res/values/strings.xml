@@ -44,4 +44,5 @@
     <string name="action_log_out">Log out</string>
     <string name="description_edit_category">Edit category</string>
     <string name="description_delete_category">Delete category</string>
+    <string name="description_add_transaction">Add transaction</string>
 </resources>

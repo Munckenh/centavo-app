@@ -10,11 +10,9 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
-import androidx.navigation.fragment.NavHostFragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 
 import com.google.firebase.auth.FirebaseAuth;
-import com.usc.centavo.R;
 import com.usc.centavo.databinding.FragmentHomeBinding;
 import com.usc.centavo.model.Transaction;
 import com.usc.centavo.view.adapter.TransactionAdapter;
@@ -42,7 +40,6 @@ public class HomeFragment extends Fragment {
         viewModel = new ViewModelProvider(this).get(TransactionViewModel.class);
 
         setupRecyclerView();
-        setupListeners();
         setupObservers();
         loadTransactions();
     }
@@ -51,13 +48,6 @@ public class HomeFragment extends Fragment {
         adapter = new TransactionAdapter(new ArrayList<>());
         binding.recyclerViewRecent.setLayoutManager(new LinearLayoutManager(getContext()));
         binding.recyclerViewRecent.setAdapter(adapter);
-    }
-
-    private void setupListeners() {
-        binding.fabAddTransaction.setOnClickListener(v ->
-            NavHostFragment.findNavController(HomeFragment.this)
-                    .navigate(R.id.action_home_to_add_transaction)
-        );
     }
 
     private void setupObservers() {

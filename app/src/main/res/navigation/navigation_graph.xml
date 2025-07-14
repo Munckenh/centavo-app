@@ -10,16 +10,17 @@
         android:name="com.usc.centavo.view.fragment.HomeFragment"
         android:label="Home"
         tools:layout="@layout/fragment_home">
-        <action
-            android:id="@+id/action_home_to_add_transaction"
-            app:destination="@id/navigation_add_transaction" />
     </fragment>
 
     <fragment
         android:id="@+id/navigation_transactions"
         android:name="com.usc.centavo.view.fragment.TransactionsFragment"
         android:label="Transactions"
-        tools:layout="@layout/fragment_transactions" />
+        tools:layout="@layout/fragment_transactions">
+        <action
+            android:id="@+id/action_home_to_add_transaction"
+            app:destination="@id/navigation_add_transaction" />
+    </fragment>
 
     <fragment
         android:id="@+id/navigation_login"

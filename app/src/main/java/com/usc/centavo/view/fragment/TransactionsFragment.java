@@ -10,9 +10,11 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
+import androidx.navigation.fragment.NavHostFragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 
 import com.google.firebase.auth.FirebaseAuth;
+import com.usc.centavo.R;
 import com.usc.centavo.databinding.FragmentTransactionsBinding;
 import com.usc.centavo.view.adapter.TransactionAdapter;
 import com.usc.centavo.viewmodel.TransactionViewModel;
@@ -39,6 +41,7 @@ public class TransactionsFragment extends Fragment {
         setupRecyclerView();
         setupObservers();
         setupSearchView();
+        setupListeners();
         loadTransactions();
     }
 
@@ -59,6 +62,13 @@ public class TransactionsFragment extends Fragment {
     private void setupSearchView() {
         binding.searchView.setupWithSearchBar(binding.searchBar);
         binding.searchView.getEditText().addTextChangedListener(createSearchTextWatcher());
+    }
+
+    private void setupListeners() {
+        binding.fabAddTransaction.setOnClickListener(v ->
+                NavHostFragment.findNavController(TransactionsFragment.this)
+                        .navigate(R.id.action_home_to_add_transaction)
+        );
     }
 
     private TextWatcher createSearchTextWatcher() {

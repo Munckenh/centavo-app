@@ -29,14 +29,4 @@
         app:layout_constraintTop_toBottomOf="@id/text_recent_transactions"
         tools:listitem="@layout/item_transaction" />
 
-    <com.google.android.material.floatingactionbutton.FloatingActionButton
-        android:id="@+id/fab_add_transaction"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_margin="16dp"
-        android:src="@drawable/ic_add"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        tools:ignore="ContentDescription" />
-
 </androidx.constraintlayout.widget.ConstraintLayout>
