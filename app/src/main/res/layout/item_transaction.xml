@@ -7,16 +7,14 @@
     android:paddingHorizontal="16dp"
     android:paddingVertical="16dp">
 
-    <com.google.android.material.imageview.ShapeableImageView
-        android:id="@+id/image_icon"
-        android:layout_width="48dp"
-        android:layout_height="48dp"
+    <View
+        android:id="@+id/viewCategoryColor"
+        android:layout_width="16dp"
+        android:layout_height="16dp"
         android:layout_alignParentStart="true"
         android:layout_centerVertical="true"
         android:layout_marginEnd="16dp"
-        android:background="?attr/colorSurfaceContainer"
-        app:contentPadding="8dp"
-        app:shapeAppearanceOverlay="@style/ShapeAppearance.Material3.Corner.Small" />
+        android:background="@drawable/category_color_circle" />
 
     <LinearLayout
         android:id="@+id/text_container"
@@ -24,7 +22,7 @@
         android:layout_height="wrap_content"
         android:layout_centerVertical="true"
         android:layout_toStartOf="@id/text_amount"
-        android:layout_toEndOf="@id/image_icon"
+        android:layout_toEndOf="@id/viewCategoryColor"
         android:orientation="vertical">
 
         <TextView

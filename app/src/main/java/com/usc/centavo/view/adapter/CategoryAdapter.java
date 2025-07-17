@@ -15,6 +15,7 @@ import com.usc.centavo.model.Category;
 
 import java.util.ArrayList;
 import java.util.List;
+import android.graphics.drawable.GradientDrawable;
 
 public class CategoryAdapter extends RecyclerView.Adapter<CategoryAdapter.CategoryViewHolder> {
 
@@ -63,20 +64,27 @@ public class CategoryAdapter extends RecyclerView.Adapter<CategoryAdapter.Catego
 
     public static class CategoryViewHolder extends RecyclerView.ViewHolder {
         private final TextView categoryNameTextView;
-        private final ImageButton editButton;
-        private final ImageButton deleteButton;
-
+        private final View viewCategoryColor;
         public CategoryViewHolder(@NonNull View itemView) {
             super(itemView);
             categoryNameTextView = itemView.findViewById(R.id.categoryNameTextView);
-            editButton = itemView.findViewById(R.id.editCategoryButton);
-            deleteButton = itemView.findViewById(R.id.deleteCategoryButton);
+            viewCategoryColor = itemView.findViewById(R.id.viewCategoryColor);
         }
-
         public void bind(@NonNull Category category, @NonNull OnCategoryInteractionListener listener) {
             categoryNameTextView.setText(category.getName());
-            editButton.setOnClickListener(v -> listener.onEditCategory(category));
-            deleteButton.setOnClickListener(v -> listener.onDeleteCategory(category.getCategoryId()));
+            // Set color
+            String color = category.getColor();
+            GradientDrawable bg = (GradientDrawable) viewCategoryColor.getBackground();
+            if (color != null && color.matches("^#([A-Fa-f0-9]{6})$")) {
+                bg.setColor(android.graphics.Color.parseColor(color));
+            } else {
+                bg.setColor(itemView.getContext().getColor(R.color.md_theme_primary));
+            }
+            itemView.setOnClickListener(v -> listener.onEditCategory(category));
+            itemView.setOnLongClickListener(v -> {
+                listener.onDeleteCategory(category.getCategoryId());
+                return true;
+            });
         }
     }
 }

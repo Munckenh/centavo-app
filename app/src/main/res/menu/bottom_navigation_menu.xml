@@ -17,7 +17,7 @@
         android:id="@+id/navigation_budget"
         android:icon="@drawable/selector_savings"
         android:title="@string/title_budget"
-        android:enabled="false" />
+        android:enabled="true" />
 
     <item
         android:id="@+id/navigation_profile"

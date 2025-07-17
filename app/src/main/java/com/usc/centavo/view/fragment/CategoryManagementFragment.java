@@ -81,19 +81,25 @@ public class CategoryManagementFragment extends Fragment implements CategoryAdap
         }
         builder.setView(dialogView);
 
-        builder.setPositiveButton("Save", (dialog, which) -> {
+        builder.setPositiveButton("Save", null); // We'll override this after showing
+        builder.setNegativeButton("Cancel", (dialog, which) -> dialog.cancel());
+
+        AlertDialog dialog = builder.create();
+        dialog.show();
+
+        dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener(v -> {
             String name = nameInput.getText().toString().trim();
             String color = colorInput.getText().toString().trim();
 
             if (name.isEmpty() || color.isEmpty()) {
                 Toast.makeText(getContext(), "Name and color cannot be empty", Toast.LENGTH_SHORT).show();
-                return;
+                return; // Don't dismiss
             }
 
             // Basic hex color validation
             if (!color.matches("^#([A-Fa-f0-9]{6})$")) {
                 Toast.makeText(getContext(), "Invalid color format. Use #RRGGBB", Toast.LENGTH_SHORT).show();
-                return;
+                return; // Don't dismiss
             }
 
             if (category == null) {
@@ -103,10 +109,8 @@ public class CategoryManagementFragment extends Fragment implements CategoryAdap
                 category.setColor(color);
                 viewModel.updateCategory(category);
             }
+            dialog.dismiss(); // Only dismiss if valid
         });
-        builder.setNegativeButton("Cancel", (dialog, which) -> dialog.cancel());
-
-        builder.show();
     }
 
     @Override

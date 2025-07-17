@@ -89,6 +89,21 @@ public class AccountRepository {
                 });
     }
 
+    public void deleteAccountAndNullTransactions(String accountId) {
+        db.collection("transactions")
+            .whereEqualTo("accountId", accountId)
+            .get()
+            .addOnSuccessListener(querySnapshot -> {
+                for (com.google.firebase.firestore.DocumentSnapshot doc : querySnapshot.getDocuments()) {
+                    java.util.HashMap<String, Object> updates = new java.util.HashMap<>();
+                    updates.put("accountId", null);
+                    doc.getReference().update(updates);
+                }
+                // Now delete the account
+                deleteAccount(accountId);
+            });
+    }
+
     public void onErrorHandled() {
         errorMessageLiveData.setValue(null);
     }

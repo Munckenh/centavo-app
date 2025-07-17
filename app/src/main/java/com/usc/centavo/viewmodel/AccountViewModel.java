@@ -7,7 +7,6 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.usc.centavo.model.Account;
 import com.usc.centavo.repository.AccountRepository;
-
 import java.util.List;
 
 public class AccountViewModel extends ViewModel {
@@ -55,6 +54,6 @@ public class AccountViewModel extends ViewModel {
     }
 
     public void deleteAccount(String accountId) {
-        repository.deleteAccount(accountId);
+        repository.deleteAccountAndNullTransactions(accountId);
     }
 } 

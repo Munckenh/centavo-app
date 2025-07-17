@@ -55,4 +55,12 @@ public class TransactionViewModel extends ViewModel {
     public void deleteTransaction(String transactionId) {
         repository.deleteTransaction(transactionId);
     }
+
+    public void getTransactionsForUserByCategoryAndDate(String userId, String categoryId, java.util.Date startDate, java.util.Date endDate) {
+        repository.getTransactionsForUserByCategoryAndDate(userId, categoryId, startDate, endDate);
+    }
+
+    public LiveData<List<Transaction>> getFilteredTransactionsLiveData() {
+        return repository.getFilteredTransactionsLiveData();
+    }
 }

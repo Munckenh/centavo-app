@@ -9,6 +9,7 @@ import android.widget.Filterable;
 import android.widget.TextView;
 import android.widget.ImageView;
 import android.graphics.Color;
+import android.graphics.drawable.GradientDrawable;
 
 import androidx.annotation.NonNull;
 import androidx.navigation.Navigation;
@@ -130,34 +131,30 @@ public class TransactionAdapter extends RecyclerView.Adapter<TransactionAdapter.
         private final TextView textDescription;
         private final TextView textAmount;
         private final TextView textDate;
-        private final ImageView imageIcon;
+        private final View viewCategoryColor;
 
         public TransactionViewHolder(@NonNull View itemView) {
             super(itemView);
             textDescription = itemView.findViewById(R.id.text_description);
             textAmount = itemView.findViewById(R.id.text_amount);
             textDate = itemView.findViewById(R.id.text_date);
-            imageIcon = itemView.findViewById(R.id.image_icon);
+            viewCategoryColor = itemView.findViewById(R.id.viewCategoryColor);
         }
 
         public void bind(Transaction transaction, SimpleDateFormat dateFormat, Map<String, String> categoryColorMap) {
             textDescription.setText(transaction.getDescription());
             textAmount.setText(String.format(Locale.US, AMOUNT_FORMAT, transaction.getAmount()));
             textDate.setText(dateFormat.format(transaction.getTransactionDate()));
-            // Set background color
+            // Set background color (keep circle)
+            GradientDrawable bg = (GradientDrawable) viewCategoryColor.getBackground();
+            String color = null;
             if (categoryColorMap != null && transaction.getCategoryId() != null) {
-                String colorHex = categoryColorMap.get(transaction.getCategoryId());
-                if (colorHex != null) {
-                    try {
-                        imageIcon.setBackgroundColor(Color.parseColor(colorHex));
-                    } catch (IllegalArgumentException e) {
-                        imageIcon.setBackgroundColor(Color.TRANSPARENT);
-                    }
-                } else {
-                    imageIcon.setBackgroundColor(Color.TRANSPARENT);
-                }
+                color = categoryColorMap.get(transaction.getCategoryId());
+            }
+            if (color != null && color.matches("^#([A-Fa-f0-9]{6})$")) {
+                bg.setColor(Color.parseColor(color));
             } else {
-                imageIcon.setBackgroundColor(Color.TRANSPARENT);
+                bg.setColor(itemView.getContext().getColor(R.color.md_theme_primary));
             }
         }
     }

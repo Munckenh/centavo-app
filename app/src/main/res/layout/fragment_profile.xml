@@ -49,23 +49,6 @@
                     android:text="@string/action_manage_categories"
                     android:textAppearance="?attr/textAppearanceBodyLarge" />
 
-                <View
-                    android:layout_width="match_parent"
-                    android:layout_height="1dp"
-                    android:background="?attr/dividerHorizontal" />
-
-                <TextView
-                    android:id="@+id/tv_budget_settings"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:background="?attr/selectableItemBackground"
-                    android:clickable="true"
-                    android:focusable="true"
-                    android:gravity="center_vertical"
-                    android:padding="16dp"
-                    android:text="@string/action_budget_settings"
-                    android:textAppearance="?attr/textAppearanceBodyLarge" />
-
             </LinearLayout>
 
         </com.google.android.material.card.MaterialCardView>

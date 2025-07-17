@@ -85,14 +85,18 @@ public class AccountManagementFragment extends Fragment {
             balanceInput.setText(String.valueOf(accountToEdit.getBalance()));
         }
         builder.setView(dialogView);
-        builder.setPositiveButton("Save", (dialog, which) -> {
+        builder.setPositiveButton("Save", null); // We'll override this after showing
+        builder.setNegativeButton("Cancel", (dialog, which) -> dialog.cancel());
+        AlertDialog dialog = builder.create();
+        dialog.show();
+        dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener(v -> {
             String name = nameInput.getText().toString().trim();
             String balanceStr = balanceInput.getText().toString().trim();
             double balance = 0;
             try { balance = Double.parseDouble(balanceStr); } catch (NumberFormatException ignored) {}
             if (name.isEmpty()) {
                 Toast.makeText(getContext(), "Please fill all fields", Toast.LENGTH_SHORT).show();
-                return;
+                return; // Don't dismiss
             }
             if (accountToEdit == null) {
                 viewModel.addAccount(name, balance);
@@ -101,9 +105,8 @@ public class AccountManagementFragment extends Fragment {
                 accountToEdit.setBalance(balance);
                 viewModel.updateAccount(accountToEdit);
             }
+            dialog.dismiss(); // Only dismiss if valid
         });
-        builder.setNegativeButton("Cancel", (dialog, which) -> dialog.cancel());
-        builder.show();
     }
 
     private class AccountAdapter extends RecyclerView.Adapter<AccountViewHolder> {
@@ -124,7 +127,12 @@ public class AccountManagementFragment extends Fragment {
             holder.bind(account);
             holder.itemView.setOnClickListener(v -> showEditDialog(account));
             holder.itemView.setOnLongClickListener(v -> {
-                viewModel.deleteAccount(account.getAccountId());
+                new AlertDialog.Builder(requireContext())
+                    .setTitle("Delete Account")
+                    .setMessage("Are you sure you want to delete this account?")
+                    .setPositiveButton("Delete", (dialog, which) -> viewModel.deleteAccount(account.getAccountId()))
+                    .setNegativeButton("Cancel", null)
+                    .show();
                 return true;
             });
         }

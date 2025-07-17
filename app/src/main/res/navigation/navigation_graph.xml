@@ -78,6 +78,12 @@
         android:label="Manage Accounts"
         tools:layout="@layout/fragment_account_management" />
 
+    <fragment
+        android:id="@+id/navigation_budget"
+        android:name="com.usc.centavo.view.fragment.BudgetFragment"
+        android:label="Budget"
+        tools:layout="@layout/fragment_budget" />
+
     <action
         android:id="@+id/action_global_to_edit_transaction"
         app:destination="@id/navigation_edit_transaction" />

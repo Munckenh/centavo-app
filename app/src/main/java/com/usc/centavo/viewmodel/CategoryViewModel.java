@@ -58,15 +58,25 @@ public class CategoryViewModel extends ViewModel {
 
     public void deleteCategoryAndTransactions(String categoryId) {
         // Delete all transactions with this categoryId
-        FirebaseFirestore.getInstance().collection("transactions")
+        FirebaseFirestore db = FirebaseFirestore.getInstance();
+        db.collection("transactions")
             .whereEqualTo("categoryId", categoryId)
             .get()
             .addOnSuccessListener(querySnapshot -> {
                 for (com.google.firebase.firestore.DocumentSnapshot doc : querySnapshot.getDocuments()) {
                     doc.getReference().delete();
                 }
-                // Now delete the category
-                repository.deleteCategory(categoryId);
+                // Now delete all budgets with this categoryId
+                db.collection("budgets")
+                    .whereEqualTo("categoryId", categoryId)
+                    .get()
+                    .addOnSuccessListener(budgetSnapshot -> {
+                        for (com.google.firebase.firestore.DocumentSnapshot doc : budgetSnapshot.getDocuments()) {
+                            doc.getReference().delete();
+                        }
+                        // Now delete the category
+                        repository.deleteCategory(categoryId);
+                    });
             });
     }
 

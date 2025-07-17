@@ -22,6 +22,7 @@ public class TransactionRepository {
     private final MutableLiveData<List<Transaction>> transactionsLiveData = new MutableLiveData<>();
     private final MutableLiveData<String> errorMessageLiveData = new MutableLiveData<>();
     private final MutableLiveData<OperationStatus> operationStatusLiveData = new MutableLiveData<>();
+    private final MutableLiveData<List<Transaction>> filteredTransactionsLiveData = new MutableLiveData<>();
 
     private TransactionRepository() {
         db = FirebaseFirestore.getInstance();
@@ -49,6 +50,10 @@ public class TransactionRepository {
 
     public LiveData<OperationStatus> getOperationStatusLiveData() {
         return operationStatusLiveData;
+    }
+
+    public LiveData<List<Transaction>> getFilteredTransactionsLiveData() {
+        return filteredTransactionsLiveData;
     }
 
     public void addTransaction(Transaction transaction) {
@@ -98,6 +103,25 @@ public class TransactionRepository {
                     if (value != null) {
                         List<Transaction> transactions = value.toObjects(Transaction.class);
                         transactionsLiveData.postValue(transactions);
+                    }
+                });
+    }
+
+    public void getTransactionsForUserByCategoryAndDate(String userId, String categoryId, java.util.Date startDate, java.util.Date endDate) {
+        db.collection("transactions")
+                .whereEqualTo("userId", userId)
+                .whereEqualTo("categoryId", categoryId)
+                .whereGreaterThanOrEqualTo("transactionDate", startDate)
+                .whereLessThanOrEqualTo("transactionDate", endDate)
+                .orderBy("transactionDate", Query.Direction.ASCENDING)
+                .addSnapshotListener((value, error) -> {
+                    if (error != null) {
+                        errorMessageLiveData.postValue("Error fetching filtered transactions");
+                        return;
+                    }
+                    if (value != null) {
+                        List<Transaction> transactions = value.toObjects(Transaction.class);
+                        filteredTransactionsLiveData.postValue(transactions);
                     }
                 });
     }
