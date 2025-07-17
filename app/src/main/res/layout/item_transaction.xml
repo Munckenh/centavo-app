@@ -15,10 +15,8 @@
         android:layout_centerVertical="true"
         android:layout_marginEnd="16dp"
         android:background="?attr/colorSurfaceContainer"
-        android:src="@drawable/ic_home"
         app:contentPadding="8dp"
-        app:shapeAppearanceOverlay="@style/ShapeAppearance.Material3.Corner.Small"
-        app:tint="?attr/colorOnSurfaceVariant"/>
+        app:shapeAppearanceOverlay="@style/ShapeAppearance.Material3.Corner.Small" />
 
     <LinearLayout
         android:id="@+id/text_container"

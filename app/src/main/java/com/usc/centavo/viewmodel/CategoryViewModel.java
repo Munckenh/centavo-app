@@ -5,6 +5,7 @@ import androidx.lifecycle.ViewModel;
 
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.firestore.FirebaseFirestore;
 import com.usc.centavo.model.Category;
 import com.usc.centavo.repository.CategoryRepository;
 
@@ -55,7 +56,21 @@ public class CategoryViewModel extends ViewModel {
         repository.updateCategory(category);
     }
 
+    public void deleteCategoryAndTransactions(String categoryId) {
+        // Delete all transactions with this categoryId
+        FirebaseFirestore.getInstance().collection("transactions")
+            .whereEqualTo("categoryId", categoryId)
+            .get()
+            .addOnSuccessListener(querySnapshot -> {
+                for (com.google.firebase.firestore.DocumentSnapshot doc : querySnapshot.getDocuments()) {
+                    doc.getReference().delete();
+                }
+                // Now delete the category
+                repository.deleteCategory(categoryId);
+            });
+    }
+
     public void deleteCategory(String categoryId) {
-        repository.deleteCategory(categoryId);
+        deleteCategoryAndTransactions(categoryId);
     }
 }

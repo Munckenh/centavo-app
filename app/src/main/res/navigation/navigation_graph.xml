@@ -46,6 +46,9 @@
         <action
             android:id="@+id/action_profile_to_category_management"
             app:destination="@id/navigation_category_management" />
+        <action
+            android:id="@+id/action_profile_to_account_management"
+            app:destination="@id/navigation_account_management" />
     </fragment>
 
     <fragment
@@ -68,6 +71,12 @@
         android:name="com.usc.centavo.view.fragment.CategoryManagementFragment"
         android:label="Manage Categories"
         tools:layout="@layout/fragment_category_management" />
+
+    <fragment
+        android:id="@+id/navigation_account_management"
+        android:name="com.usc.centavo.view.fragment.AccountManagementFragment"
+        android:label="Manage Accounts"
+        tools:layout="@layout/fragment_account_management" />
 
     <action
         android:id="@+id/action_global_to_edit_transaction"

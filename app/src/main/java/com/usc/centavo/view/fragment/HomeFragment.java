@@ -17,6 +17,10 @@ import com.usc.centavo.databinding.FragmentHomeBinding;
 import com.usc.centavo.model.Transaction;
 import com.usc.centavo.view.adapter.TransactionAdapter;
 import com.usc.centavo.viewmodel.TransactionViewModel;
+import com.usc.centavo.viewmodel.CategoryViewModel;
+import com.usc.centavo.model.Category;
+import java.util.HashMap;
+import java.util.Map;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -27,6 +31,7 @@ public class HomeFragment extends Fragment {
     private TransactionViewModel viewModel;
     private FragmentHomeBinding binding;
     private TransactionAdapter adapter;
+    private CategoryViewModel categoryViewModel;
 
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -38,10 +43,22 @@ public class HomeFragment extends Fragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
         viewModel = new ViewModelProvider(this).get(TransactionViewModel.class);
+        categoryViewModel = new ViewModelProvider(this).get(CategoryViewModel.class);
 
         setupRecyclerView();
         setupObservers();
         loadTransactions();
+
+        // Observe categories and pass color map to adapter
+        categoryViewModel.getCategoriesLiveData().observe(getViewLifecycleOwner(), categories -> {
+            Map<String, String> colorMap = new HashMap<>();
+            if (categories != null) {
+                for (Category cat : categories) {
+                    colorMap.put(cat.getCategoryId(), cat.getColor());
+                }
+            }
+            adapter.setCategoryColorMap(colorMap);
+        });
     }
 
     private void setupRecyclerView() {

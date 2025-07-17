@@ -19,6 +19,8 @@ import com.usc.centavo.model.Transaction;
 import com.usc.centavo.viewmodel.TransactionViewModel;
 import com.usc.centavo.viewmodel.CategoryViewModel;
 import com.usc.centavo.model.Category;
+import com.usc.centavo.viewmodel.AccountViewModel;
+import com.usc.centavo.model.Account;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Locale;
@@ -36,6 +38,8 @@ public class EditTransactionFragment extends Fragment {
     private String selectedCategoryId;
     private String selectedAccount;
     private String selectedType;
+    private AccountViewModel accountViewModel;
+    private List<Account> accountObjects = new ArrayList<>();
 
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -48,6 +52,7 @@ public class EditTransactionFragment extends Fragment {
         super.onViewCreated(view, savedInstanceState);
         viewModel = new ViewModelProvider(this).get(TransactionViewModel.class);
         categoryViewModel = new ViewModelProvider(this).get(CategoryViewModel.class);
+        accountViewModel = new ViewModelProvider(this).get(AccountViewModel.class);
 
         showLoading(true);
         setupDropdowns();
@@ -125,25 +130,44 @@ public class EditTransactionFragment extends Fragment {
         });
 
         // Account dropdown
-        List<String> accountList = new ArrayList<>();
-        accountList.add("Cash");
-        accountList.add("Bank");
-        accountList.add("Card");
-        ArrayAdapter<String> accountAdapter = new ArrayAdapter<>(requireContext(), android.R.layout.simple_dropdown_item_1line, accountList);
+        ArrayAdapter<String> accountAdapter = new ArrayAdapter<>(requireContext(), android.R.layout.simple_dropdown_item_1line, new ArrayList<>());
         binding.autoCompleteAccount.setAdapter(accountAdapter);
         binding.autoCompleteAccount.setThreshold(0);
-
-        // Pre-select if editing
-        if (currentTransaction != null && currentTransaction.getAccountId() != null) {
-            int idx = accountList.indexOf(currentTransaction.getAccountId());
-            if (idx >= 0) {
-                binding.autoCompleteAccount.setText(accountList.get(idx), false);
-                selectedAccount = accountList.get(idx);
+        accountViewModel.getAccountsLiveData().observe(getViewLifecycleOwner(), accounts -> {
+            accountObjects = accounts != null ? accounts : new ArrayList<>();
+            List<String> accountNames = new ArrayList<>();
+            accountNames.add("None");
+            for (Account acc : accountObjects) {
+                accountNames.add(acc.getName());
             }
-        }
-
+            accountAdapter.clear();
+            accountAdapter.addAll(accountNames);
+            accountAdapter.notifyDataSetChanged();
+            // Pre-select if editing
+            if (currentTransaction != null) {
+                String accId = currentTransaction.getAccountId();
+                if (accId == null || accId.isEmpty()) {
+                    binding.autoCompleteAccount.setText(accountNames.get(0), false);
+                    selectedAccount = null;
+                } else {
+                    int idx = 0;
+                    for (int i = 0; i < accountObjects.size(); i++) {
+                        if (accountObjects.get(i).getAccountId().equals(accId)) {
+                            idx = i + 1; // +1 for 'None'
+                            break;
+                        }
+                    }
+                    binding.autoCompleteAccount.setText(accountNames.get(idx), false);
+                    selectedAccount = accId;
+                }
+            }
+        });
         binding.autoCompleteAccount.setOnItemClickListener((parent, view, position, id) -> {
-            selectedAccount = accountList.get(position);
+            if (position == 0) {
+                selectedAccount = null;
+            } else {
+                selectedAccount = accountObjects.get(position - 1).getAccountId();
+            }
         });
 
         // Transaction type dropdown
@@ -245,7 +269,7 @@ public class EditTransactionFragment extends Fragment {
         String accountId = selectedAccount;
         String type = selectedType;
 
-        if (amountStr.isEmpty() || description.isEmpty() || categoryId.isEmpty() || accountId.isEmpty() || type == null || type.isEmpty()) {
+        if (amountStr.isEmpty() || description.isEmpty() || categoryId.isEmpty() || type == null || type.isEmpty()) {
             Toast.makeText(getContext(), "Please fill all fields", Toast.LENGTH_SHORT).show();
             return;
         }

@@ -18,7 +18,10 @@ import com.usc.centavo.R;
 import com.usc.centavo.databinding.FragmentTransactionsBinding;
 import com.usc.centavo.view.adapter.TransactionAdapter;
 import com.usc.centavo.viewmodel.TransactionViewModel;
-
+import com.usc.centavo.viewmodel.CategoryViewModel;
+import com.usc.centavo.model.Category;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.ArrayList;
 
 public class TransactionsFragment extends Fragment {
@@ -26,6 +29,7 @@ public class TransactionsFragment extends Fragment {
     private TransactionAdapter adapter;
     private TransactionViewModel viewModel;
     private FragmentTransactionsBinding binding;
+    private CategoryViewModel categoryViewModel;
 
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -37,12 +41,24 @@ public class TransactionsFragment extends Fragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
         viewModel = new ViewModelProvider(this).get(TransactionViewModel.class);
+        categoryViewModel = new ViewModelProvider(this).get(CategoryViewModel.class);
 
         setupRecyclerView();
         setupObservers();
         setupSearchView();
         setupListeners();
         loadTransactions();
+
+        // Observe categories and pass color map to adapter
+        categoryViewModel.getCategoriesLiveData().observe(getViewLifecycleOwner(), categories -> {
+            Map<String, String> colorMap = new HashMap<>();
+            if (categories != null) {
+                for (Category cat : categories) {
+                    colorMap.put(cat.getCategoryId(), cat.getColor());
+                }
+            }
+            adapter.setCategoryColorMap(colorMap);
+        });
     }
 
     private void setupRecyclerView() {

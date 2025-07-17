@@ -41,6 +41,10 @@ public class ProfileFragment extends Fragment {
                 NavHostFragment.findNavController(this)
                         .navigate(R.id.action_profile_to_category_management)
         );
+        binding.tvManageAccounts.setOnClickListener(v ->
+                NavHostFragment.findNavController(this)
+                        .navigate(R.id.action_profile_to_account_management)
+        );
     }
 
     private void setupObservers() {

@@ -118,7 +118,7 @@ public class CategoryManagementFragment extends Fragment implements CategoryAdap
     public void onDeleteCategory(String categoryId) {
         new AlertDialog.Builder(requireContext())
                 .setTitle("Delete Category")
-                .setMessage("Are you sure you want to delete this category?")
+                .setMessage("Are you sure you want to delete this category? All transactions in this category will also be deleted.")
                 .setPositiveButton("Delete", (dialog, which) -> viewModel.deleteCategory(categoryId))
                 .setNegativeButton("Cancel", null)
                 .show();

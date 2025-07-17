@@ -8,6 +8,8 @@ import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.Query;
 import com.usc.centavo.model.Transaction;
 import com.usc.centavo.utils.OperationStatus;
+import com.usc.centavo.repository.AccountRepository;
+import com.usc.centavo.model.Account;
 
 import java.util.HashMap;
 import java.util.List;
@@ -52,12 +54,34 @@ public class TransactionRepository {
     public void addTransaction(Transaction transaction) {
         db.collection("transactions")
                 .add(transaction)
-                .addOnSuccessListener(aVoid -> {
+                .addOnSuccessListener(documentReference -> {
                     operationStatusLiveData.postValue(OperationStatus.SUCCESS);
+                    // Update account balance if needed
+                    if (transaction.getAccountId() != null && !transaction.getAccountId().isEmpty()) {
+                        updateAccountBalanceAfterAdd(transaction);
+                    }
                 })
                 .addOnFailureListener(e -> {
                     operationStatusLiveData.postValue(OperationStatus.FAILURE);
                     errorMessageLiveData.postValue("Error adding transaction");
+                });
+    }
+
+    private void updateAccountBalanceAfterAdd(Transaction transaction) {
+        db.collection("accounts").document(transaction.getAccountId())
+                .get()
+                .addOnSuccessListener(documentSnapshot -> {
+                    Account account = documentSnapshot.toObject(Account.class);
+                    if (account != null) {
+                        double newBalance = account.getBalance();
+                        if ("Income".equalsIgnoreCase(transaction.getType())) {
+                            newBalance += transaction.getAmount();
+                        } else {
+                            newBalance -= transaction.getAmount();
+                        }
+                        account.setBalance(newBalance);
+                        db.collection("accounts").document(account.getAccountId()).set(account);
+                    }
                 });
     }
 
@@ -112,25 +136,109 @@ public class TransactionRepository {
             return;
         }
 
-        operationStatusLiveData.postValue(OperationStatus.LOADING);
-        Map<String, Object> updates = new HashMap<>();
-        updates.put("categoryId", transaction.getCategoryId());
-        updates.put("accountId", transaction.getAccountId());
-        updates.put("amount", transaction.getAmount());
-        updates.put("description", transaction.getDescription());
-        updates.put("transactionDate", transaction.getTransactionDate());
-        updates.put("type", transaction.getType());
-        updates.put("updatedAt", FieldValue.serverTimestamp());
-
-        db.collection("transactions").document(transaction.getTransactionId())
-                .update(updates)
-                .addOnSuccessListener(aVoid -> {
-                    operationStatusLiveData.postValue(OperationStatus.SUCCESS);
+        // Fetch the old transaction to adjust balances
+        db.collection("transactions").document(transaction.getTransactionId()).get()
+                .addOnSuccessListener(documentSnapshot -> {
+                    Transaction oldTransaction = documentSnapshot.toObject(Transaction.class);
+                    // Proceed with update
+                    updateTransactionAndBalances(transaction, oldTransaction);
                 })
                 .addOnFailureListener(e -> {
                     operationStatusLiveData.postValue(OperationStatus.FAILURE);
                     errorMessageLiveData.postValue("Error updating transaction");
                 });
+    }
+
+    private void updateTransactionAndBalances(Transaction newTx, Transaction oldTx) {
+        // Update Firestore transaction document
+        Map<String, Object> updates = new HashMap<>();
+        updates.put("categoryId", newTx.getCategoryId());
+        updates.put("accountId", newTx.getAccountId());
+        updates.put("amount", newTx.getAmount());
+        updates.put("description", newTx.getDescription());
+        updates.put("transactionDate", newTx.getTransactionDate());
+        updates.put("type", newTx.getType());
+        updates.put("updatedAt", FieldValue.serverTimestamp());
+
+        db.collection("transactions").document(newTx.getTransactionId())
+                .update(updates)
+                .addOnSuccessListener(aVoid -> {
+                    operationStatusLiveData.postValue(OperationStatus.SUCCESS);
+                    // Adjust balances if needed
+                    updateAccountBalanceAfterEdit(newTx, oldTx);
+                })
+                .addOnFailureListener(e -> {
+                    operationStatusLiveData.postValue(OperationStatus.FAILURE);
+                    errorMessageLiveData.postValue("Error updating transaction");
+                });
+    }
+
+    private void updateAccountBalanceAfterEdit(Transaction newTx, Transaction oldTx) {
+        String oldAccountId = oldTx != null ? oldTx.getAccountId() : null;
+        String newAccountId = newTx.getAccountId();
+        double oldAmount = oldTx != null ? oldTx.getAmount() : 0;
+        double newAmount = newTx.getAmount();
+        String oldType = oldTx != null ? oldTx.getType() : null;
+        String newType = newTx.getType();
+
+        if (oldAccountId != null && !oldAccountId.isEmpty() && oldAccountId.equals(newAccountId)) {
+            // Same account: revert old, apply new in one update
+            db.collection("accounts").document(newAccountId).get()
+                .addOnSuccessListener(documentSnapshot -> {
+                    Account account = documentSnapshot.toObject(Account.class);
+                    if (account != null) {
+                        double balance = account.getBalance();
+                        // Revert old
+                        if ("Income".equalsIgnoreCase(oldType)) {
+                            balance -= oldAmount;
+                        } else {
+                            balance += oldAmount;
+                        }
+                        // Apply new
+                        if ("Income".equalsIgnoreCase(newType)) {
+                            balance += newAmount;
+                        } else {
+                            balance -= newAmount;
+                        }
+                        account.setBalance(balance);
+                        db.collection("accounts").document(account.getAccountId()).set(account);
+                    }
+                });
+        } else {
+            // Different accounts: revert old on old account, apply new on new account
+            if (oldAccountId != null && !oldAccountId.isEmpty()) {
+                db.collection("accounts").document(oldAccountId).get()
+                    .addOnSuccessListener(documentSnapshot -> {
+                        Account account = documentSnapshot.toObject(Account.class);
+                        if (account != null) {
+                            double balance = account.getBalance();
+                            if ("Income".equalsIgnoreCase(oldType)) {
+                                balance -= oldAmount;
+                            } else {
+                                balance += oldAmount;
+                            }
+                            account.setBalance(balance);
+                            db.collection("accounts").document(account.getAccountId()).set(account);
+                        }
+                    });
+            }
+            if (newAccountId != null && !newAccountId.isEmpty()) {
+                db.collection("accounts").document(newAccountId).get()
+                    .addOnSuccessListener(documentSnapshot -> {
+                        Account account = documentSnapshot.toObject(Account.class);
+                        if (account != null) {
+                            double balance = account.getBalance();
+                            if ("Income".equalsIgnoreCase(newType)) {
+                                balance += newAmount;
+                            } else {
+                                balance -= newAmount;
+                            }
+                            account.setBalance(balance);
+                            db.collection("accounts").document(account.getAccountId()).set(account);
+                        }
+                    });
+            }
+        }
     }
 
     public void deleteTransaction(String transactionId) {

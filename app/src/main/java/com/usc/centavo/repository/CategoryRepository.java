@@ -100,4 +100,19 @@ public class CategoryRepository {
         categoriesLiveData.postValue(null);
         errorMessageLiveData.postValue(null);
     }
+
+    public void createDefaultCategoriesIfNone(String userId) {
+        db.collection("categories")
+                .whereEqualTo("userId", userId)
+                .get()
+                .addOnSuccessListener(querySnapshot -> {
+                    if (querySnapshot.isEmpty()) {
+                        addCategory(new Category(userId, "Food & Drink", "#FF9800")); // Orange
+                        addCategory(new Category(userId, "Transport", "#2196F3")); // Blue
+                        addCategory(new Category(userId, "Self-Care", "#E91E63")); // Pink
+                        addCategory(new Category(userId, "Shopping", "#4CAF50")); // Green
+                        addCategory(new Category(userId, "Health", "#F44336")); // Red
+                    }
+                });
+    }
 }

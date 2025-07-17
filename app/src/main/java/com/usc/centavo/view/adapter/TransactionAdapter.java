@@ -7,6 +7,8 @@ import android.view.ViewGroup;
 import android.widget.Filter;
 import android.widget.Filterable;
 import android.widget.TextView;
+import android.widget.ImageView;
+import android.graphics.Color;
 
 import androidx.annotation.NonNull;
 import androidx.navigation.Navigation;
@@ -19,6 +21,7 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 
 public class TransactionAdapter extends RecyclerView.Adapter<TransactionAdapter.TransactionViewHolder> implements Filterable {
 
@@ -29,6 +32,7 @@ public class TransactionAdapter extends RecyclerView.Adapter<TransactionAdapter.
     private List<Transaction> transactionList;
     private final List<Transaction> transactionListFull;
     private final SimpleDateFormat dateFormat;
+    private Map<String, String> categoryColorMap;
 
     public TransactionAdapter(List<Transaction> transactionList) {
         this.transactionList = new ArrayList<>(transactionList);
@@ -43,6 +47,11 @@ public class TransactionAdapter extends RecyclerView.Adapter<TransactionAdapter.
         notifyItemRangeChanged(0, transactionList.size());
     }
 
+    public void setCategoryColorMap(Map<String, String> categoryColorMap) {
+        this.categoryColorMap = categoryColorMap;
+        notifyDataSetChanged();
+    }
+
     @NonNull
     @Override
     public TransactionViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
@@ -54,7 +63,7 @@ public class TransactionAdapter extends RecyclerView.Adapter<TransactionAdapter.
     @Override
     public void onBindViewHolder(@NonNull TransactionViewHolder holder, int position) {
         Transaction transaction = transactionList.get(position);
-        holder.bind(transaction, dateFormat);
+        holder.bind(transaction, dateFormat, categoryColorMap);
 
         holder.itemView.setOnClickListener(v -> navigateToEditTransaction(v, transaction));
     }
@@ -121,18 +130,35 @@ public class TransactionAdapter extends RecyclerView.Adapter<TransactionAdapter.
         private final TextView textDescription;
         private final TextView textAmount;
         private final TextView textDate;
+        private final ImageView imageIcon;
 
         public TransactionViewHolder(@NonNull View itemView) {
             super(itemView);
             textDescription = itemView.findViewById(R.id.text_description);
             textAmount = itemView.findViewById(R.id.text_amount);
             textDate = itemView.findViewById(R.id.text_date);
+            imageIcon = itemView.findViewById(R.id.image_icon);
         }
 
-        public void bind(Transaction transaction, SimpleDateFormat dateFormat) {
+        public void bind(Transaction transaction, SimpleDateFormat dateFormat, Map<String, String> categoryColorMap) {
             textDescription.setText(transaction.getDescription());
             textAmount.setText(String.format(Locale.US, AMOUNT_FORMAT, transaction.getAmount()));
             textDate.setText(dateFormat.format(transaction.getTransactionDate()));
+            // Set background color
+            if (categoryColorMap != null && transaction.getCategoryId() != null) {
+                String colorHex = categoryColorMap.get(transaction.getCategoryId());
+                if (colorHex != null) {
+                    try {
+                        imageIcon.setBackgroundColor(Color.parseColor(colorHex));
+                    } catch (IllegalArgumentException e) {
+                        imageIcon.setBackgroundColor(Color.TRANSPARENT);
+                    }
+                } else {
+                    imageIcon.setBackgroundColor(Color.TRANSPARENT);
+                }
+            } else {
+                imageIcon.setBackgroundColor(Color.TRANSPARENT);
+            }
         }
     }
 }

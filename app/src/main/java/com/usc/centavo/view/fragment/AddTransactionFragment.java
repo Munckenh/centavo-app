@@ -21,6 +21,8 @@ import com.usc.centavo.model.Transaction;
 import com.usc.centavo.viewmodel.TransactionViewModel;
 import com.usc.centavo.viewmodel.CategoryViewModel;
 import com.usc.centavo.model.Category;
+import com.usc.centavo.viewmodel.AccountViewModel;
+import com.usc.centavo.model.Account;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -38,6 +40,8 @@ public class AddTransactionFragment extends Fragment {
     private String selectedCategoryId;
     private String selectedAccount;
     private String selectedType;
+    private AccountViewModel accountViewModel;
+    private List<Account> accountObjects = new ArrayList<>();
 
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -50,6 +54,7 @@ public class AddTransactionFragment extends Fragment {
         super.onViewCreated(view, savedInstanceState);
         viewModel = new ViewModelProvider(this).get(TransactionViewModel.class);
         categoryViewModel = new ViewModelProvider(this).get(CategoryViewModel.class);
+        accountViewModel = new ViewModelProvider(this).get(AccountViewModel.class);
 
         setupDatePicker();
         setupDropdowns();
@@ -109,15 +114,26 @@ public class AddTransactionFragment extends Fragment {
         });
 
         // Account dropdown
-        List<String> accountList = new ArrayList<>();
-        accountList.add("Cash");
-        accountList.add("Bank");
-        accountList.add("Card");
-        ArrayAdapter<String> accountAdapter = new ArrayAdapter<>(requireContext(), android.R.layout.simple_dropdown_item_1line, accountList);
+        ArrayAdapter<String> accountAdapter = new ArrayAdapter<>(requireContext(), android.R.layout.simple_dropdown_item_1line, new ArrayList<>());
         binding.autoCompleteAccount.setAdapter(accountAdapter);
         binding.autoCompleteAccount.setThreshold(0);
+        accountViewModel.getAccountsLiveData().observe(getViewLifecycleOwner(), accounts -> {
+            accountObjects = accounts != null ? accounts : new ArrayList<>();
+            List<String> accountNames = new ArrayList<>();
+            accountNames.add("None");
+            for (Account acc : accountObjects) {
+                accountNames.add(acc.getName());
+            }
+            accountAdapter.clear();
+            accountAdapter.addAll(accountNames);
+            accountAdapter.notifyDataSetChanged();
+        });
         binding.autoCompleteAccount.setOnItemClickListener((parent, view, position, id) -> {
-            selectedAccount = accountList.get(position);
+            if (position == 0) {
+                selectedAccount = null;
+            } else {
+                selectedAccount = accountObjects.get(position - 1).getAccountId();
+            }
         });
 
         // Transaction type dropdown
@@ -156,7 +172,7 @@ public class AddTransactionFragment extends Fragment {
         String userId = FirebaseAuth.getInstance().getUid();
 
         if (TextUtils.isEmpty(amountStr) || TextUtils.isEmpty(description) ||
-                TextUtils.isEmpty(categoryId) || TextUtils.isEmpty(accountId) || TextUtils.isEmpty(type) || userId == null) {
+                TextUtils.isEmpty(categoryId) || TextUtils.isEmpty(type) || userId == null) {
             Toast.makeText(getContext(), "Please fill all fields", Toast.LENGTH_SHORT).show();
             return;
         }
