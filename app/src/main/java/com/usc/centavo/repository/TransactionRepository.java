@@ -119,6 +119,7 @@ public class TransactionRepository {
         updates.put("amount", transaction.getAmount());
         updates.put("description", transaction.getDescription());
         updates.put("transactionDate", transaction.getTransactionDate());
+        updates.put("type", transaction.getType());
         updates.put("updatedAt", FieldValue.serverTimestamp());
 
         db.collection("transactions").document(transaction.getTransactionId())

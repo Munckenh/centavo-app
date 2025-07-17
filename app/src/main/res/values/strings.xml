@@ -45,4 +45,7 @@
     <string name="description_edit_category">Edit category</string>
     <string name="description_delete_category">Delete category</string>
     <string name="description_add_transaction">Add transaction</string>
+    <string name="hint_category">Category</string>
+    <string name="hint_account">Account</string>
+    <string name="hint_transaction_type">Transaction Type</string>
 </resources>

@@ -15,6 +15,7 @@ public class Transaction {
     private double amount;
     private String description;
     private Date transactionDate;
+    private String type;
     @ServerTimestamp
     private Date createdAt;
     @ServerTimestamp
@@ -22,13 +23,14 @@ public class Transaction {
 
     public Transaction() {}
 
-    public Transaction(String userId, String categoryId, String accountId, double amount, String description, Date transactionDate) {
+    public Transaction(String userId, String categoryId, String accountId, double amount, String description, Date transactionDate, String type) {
         this.userId = userId;
         this.categoryId = categoryId;
         this.accountId = accountId;
         this.amount = amount;
         this.description = description;
         this.transactionDate = transactionDate;
+        this.type = type;
     }
 
     public String getTransactionId() {
@@ -85,6 +87,13 @@ public class Transaction {
 
     public void setTransactionDate(Date transactionDate) {
         this.transactionDate = transactionDate;
+    }
+
+    public String getType() {
+        return type;
+    }
+    public void setType(String type) {
+        this.type = type;
     }
 
     public Date getCreatedAt() {

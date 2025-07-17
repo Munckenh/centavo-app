@@ -7,6 +7,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Toast;
+import android.widget.ArrayAdapter;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -18,6 +19,10 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.usc.centavo.databinding.FragmentAddTransactionBinding;
 import com.usc.centavo.model.Transaction;
 import com.usc.centavo.viewmodel.TransactionViewModel;
+import com.usc.centavo.viewmodel.CategoryViewModel;
+import com.usc.centavo.model.Category;
+import java.util.ArrayList;
+import java.util.List;
 
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
@@ -29,6 +34,10 @@ public class AddTransactionFragment extends Fragment {
     private TransactionViewModel viewModel;
     private FragmentAddTransactionBinding binding;
     private final Calendar selectedDate = Calendar.getInstance();
+    private CategoryViewModel categoryViewModel;
+    private String selectedCategoryId;
+    private String selectedAccount;
+    private String selectedType;
 
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -40,14 +49,19 @@ public class AddTransactionFragment extends Fragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
         viewModel = new ViewModelProvider(this).get(TransactionViewModel.class);
+        categoryViewModel = new ViewModelProvider(this).get(CategoryViewModel.class);
 
         setupDatePicker();
+        setupDropdowns();
         setupListeners();
         setupObservers();
     }
 
     private void setupDatePicker() {
+        // Disable hint animation before setting initial date
+        binding.dateInputLayout.setHintAnimationEnabled(false);
         updateDateInView();
+        binding.dateInputLayout.setHintAnimationEnabled(true);
         DatePickerDialog.OnDateSetListener dateSetListener = (view, year, month, dayOfMonth) -> {
             selectedDate.set(Calendar.YEAR, year);
             selectedDate.set(Calendar.MONTH, month);
@@ -71,6 +85,64 @@ public class AddTransactionFragment extends Fragment {
         binding.editTextDate.setText(sdf.format(selectedDate.getTime()));
     }
 
+    private void setupDropdowns() {
+        // Category dropdown
+        ArrayAdapter<String> categoryAdapter = new ArrayAdapter<>(requireContext(), android.R.layout.simple_dropdown_item_1line, new ArrayList<>());
+        binding.autoCompleteCategory.setAdapter(categoryAdapter);
+        binding.autoCompleteCategory.setThreshold(0); // Show dropdown immediately
+
+        categoryViewModel.getCategoriesLiveData().observe(getViewLifecycleOwner(), categories -> {
+            List<String> categoryNames = new ArrayList<>();
+            for (Category c : categories) {
+                categoryNames.add(c.getName());
+            }
+            categoryAdapter.clear();
+            categoryAdapter.addAll(categoryNames);
+            categoryAdapter.notifyDataSetChanged();
+        });
+
+        binding.autoCompleteCategory.setOnItemClickListener((parent, view, position, id) -> {
+            List<Category> categories = categoryViewModel.getCategoriesLiveData().getValue();
+            if (categories != null && position < categories.size()) {
+                selectedCategoryId = categories.get(position).getCategoryId();
+            }
+        });
+
+        // Account dropdown
+        List<String> accountList = new ArrayList<>();
+        accountList.add("Cash");
+        accountList.add("Bank");
+        accountList.add("Card");
+        ArrayAdapter<String> accountAdapter = new ArrayAdapter<>(requireContext(), android.R.layout.simple_dropdown_item_1line, accountList);
+        binding.autoCompleteAccount.setAdapter(accountAdapter);
+        binding.autoCompleteAccount.setThreshold(0);
+        binding.autoCompleteAccount.setOnItemClickListener((parent, view, position, id) -> {
+            selectedAccount = accountList.get(position);
+        });
+
+        // Transaction type dropdown
+        List<String> typeList = new ArrayList<>();
+        typeList.add("Income");
+        typeList.add("Expense");
+        ArrayAdapter<String> typeAdapter = new ArrayAdapter<>(requireContext(), android.R.layout.simple_dropdown_item_1line, typeList);
+        binding.autoCompleteType.setAdapter(typeAdapter);
+        binding.autoCompleteType.setThreshold(0);
+        binding.autoCompleteType.setOnItemClickListener((parent, view, position, id) -> {
+            selectedType = typeList.get(position);
+        });
+
+        // Show dropdowns on focus
+        binding.autoCompleteCategory.setOnFocusChangeListener((v, hasFocus) -> {
+            if (hasFocus) binding.autoCompleteCategory.showDropDown();
+        });
+        binding.autoCompleteAccount.setOnFocusChangeListener((v, hasFocus) -> {
+            if (hasFocus) binding.autoCompleteAccount.showDropDown();
+        });
+        binding.autoCompleteType.setOnFocusChangeListener((v, hasFocus) -> {
+            if (hasFocus) binding.autoCompleteType.showDropDown();
+        });
+    }
+
     private void setupListeners() {
         binding.buttonSave.setOnClickListener(v -> saveTransaction());
     }
@@ -78,12 +150,13 @@ public class AddTransactionFragment extends Fragment {
     private void saveTransaction() {
         String amountStr = binding.editTextAmount.getText().toString();
         String description = binding.editTextDescription.getText().toString();
-        String categoryId = "TODO"; // Replace with actual category selection logic
-        String accountId = "TODO";  // Replace with actual account selection logic
+        String categoryId = selectedCategoryId;
+        String accountId = selectedAccount;
+        String type = selectedType;
         String userId = FirebaseAuth.getInstance().getUid();
 
         if (TextUtils.isEmpty(amountStr) || TextUtils.isEmpty(description) ||
-                TextUtils.isEmpty(categoryId) || TextUtils.isEmpty(accountId) || userId == null) {
+                TextUtils.isEmpty(categoryId) || TextUtils.isEmpty(accountId) || TextUtils.isEmpty(type) || userId == null) {
             Toast.makeText(getContext(), "Please fill all fields", Toast.LENGTH_SHORT).show();
             return;
         }
@@ -91,7 +164,7 @@ public class AddTransactionFragment extends Fragment {
         try {
             double amount = Double.parseDouble(amountStr);
             Date transactionDate = selectedDate.getTime();
-            Transaction transaction = new Transaction(userId, categoryId, accountId, amount, description, transactionDate);
+            Transaction transaction = new Transaction(userId, categoryId, accountId, amount, description, transactionDate, type);
             viewModel.addTransaction(transaction);
         } catch (NumberFormatException e) {
             Toast.makeText(getContext(), "Invalid amount", Toast.LENGTH_SHORT).show();
