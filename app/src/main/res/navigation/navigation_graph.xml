@@ -84,6 +84,12 @@
         android:label="Budget"
         tools:layout="@layout/fragment_budget" />
 
+    <fragment
+        android:id="@+id/navigation_goals"
+        android:name="com.usc.centavo.view.fragment.GoalFragment"
+        android:label="Goals"
+        tools:layout="@layout/fragment_goal" />
+
     <action
         android:id="@+id/action_global_to_edit_transaction"
         app:destination="@id/navigation_edit_transaction" />

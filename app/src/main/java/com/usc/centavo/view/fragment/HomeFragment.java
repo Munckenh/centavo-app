@@ -43,14 +43,19 @@ import com.google.android.material.textfield.MaterialAutoCompleteTextView;
 import android.widget.ArrayAdapter;
 import com.usc.centavo.R;
 import com.github.mikephil.charting.formatter.ValueFormatter;
+import com.usc.centavo.view.adapter.GoalSummaryAdapter;
+import com.usc.centavo.viewmodel.GoalViewModel;
 
 public class HomeFragment extends Fragment {
     private static final int MAX_RECENT_TRANSACTIONS = 3;
 
-    private TransactionViewModel viewModel;
     private FragmentHomeBinding binding;
-    private TransactionAdapter adapter;
+    private TransactionViewModel viewModel;
     private CategoryViewModel categoryViewModel;
+    private GoalViewModel goalViewModel;
+    private TransactionAdapter adapter;
+    private GoalSummaryAdapter goalSummaryAdapter;
+    private List<Category> categoryList = new ArrayList<>();
     private LineChart lineChart;
     private MaterialAutoCompleteTextView dropdownTrendDateRange;
     private MaterialAutoCompleteTextView dropdownTrendCategory;
@@ -69,20 +74,63 @@ public class HomeFragment extends Fragment {
     }
 
     @Override
-    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
+    public void onViewCreated(@NonNull View view, Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
         viewModel = new ViewModelProvider(this).get(TransactionViewModel.class);
         categoryViewModel = new ViewModelProvider(this).get(CategoryViewModel.class);
+        goalViewModel = new ViewModelProvider(this).get(GoalViewModel.class);
 
-        setupRecyclerView();
-        
-        // Initialize chart and dropdowns
+        // Initialize views from binding
         lineChart = binding.lineChartTrend;
         dropdownTrendDateRange = binding.dropdownTrendDateRange;
         dropdownTrendCategory = binding.dropdownTrendCategory;
-        
-        setupTrendChartControls();
 
+        setupRecyclerView();
+        setupGoalSummaryRecyclerView();
+        setupChart();
+        setupDropdowns();
+        setupObservers();
+    }
+
+    private void setupRecyclerView() {
+        adapter = new TransactionAdapter(new ArrayList<>());
+        binding.recyclerViewRecent.setLayoutManager(new LinearLayoutManager(getContext()));
+        binding.recyclerViewRecent.setAdapter(adapter);
+    }
+
+    private void setupGoalSummaryRecyclerView() {
+        goalSummaryAdapter = new GoalSummaryAdapter();
+        binding.recyclerViewGoalsSummary.setLayoutManager(new LinearLayoutManager(getContext(), LinearLayoutManager.HORIZONTAL, false));
+        binding.recyclerViewGoalsSummary.setAdapter(goalSummaryAdapter);
+    }
+
+    private void setupDropdowns() {
+        // Date range dropdown
+        List<String> dateRanges = new ArrayList<>();
+        dateRanges.add("Last 7 days");
+        dateRanges.add("Last 30 days");
+        dateRanges.add("This month");
+        ArrayAdapter<String> dateAdapter = new ArrayAdapter<>(requireContext(), android.R.layout.simple_dropdown_item_1line, dateRanges);
+        dropdownTrendDateRange.setAdapter(dateAdapter);
+        dropdownTrendDateRange.setThreshold(0);
+        dropdownTrendDateRange.setOnFocusChangeListener((v, hasFocus) -> { if (hasFocus) dropdownTrendDateRange.showDropDown(); });
+        dropdownTrendDateRange.setText(dateRanges.get(0), false);
+        dropdownTrendDateRange.setOnItemClickListener((parent, view, position, id) -> updateTrendChartQuery());
+        dropdownTrendCategory.setOnItemClickListener((parent, view, position, id) -> updateTrendChartQuery());
+    }
+
+    private void setupChart() {
+        // Basic chart setup
+        lineChart.getDescription().setEnabled(false);
+        lineChart.setDrawGridBackground(false);
+        lineChart.getXAxis().setDrawGridLines(false);
+        lineChart.getAxisLeft().setDrawGridLines(true);
+        lineChart.getAxisRight().setEnabled(false);
+        lineChart.getXAxis().setPosition(XAxis.XAxisPosition.BOTTOM);
+        lineChart.getLegend().setEnabled(false);
+    }
+
+    private void setupObservers() {
         // Observe categories
         categoryViewModel.getCategoriesLiveData().observe(getViewLifecycleOwner(), categories -> {
             allCategories = categories != null ? categories : new ArrayList<>();
@@ -125,6 +173,12 @@ public class HomeFragment extends Fragment {
                 updateTrendChart();
             }
         });
+        
+        goalViewModel.getGoalsLiveData().observe(getViewLifecycleOwner(), goals -> {
+            if (goalSummaryAdapter != null) {
+                goalSummaryAdapter.submitList(goals);
+            }
+        });
 
         viewModel.getErrorMessageLiveData().observe(getViewLifecycleOwner(), error -> {
             if (error != null && !error.isEmpty()) {
@@ -134,27 +188,6 @@ public class HomeFragment extends Fragment {
         });
 
         loadTransactions();
-    }
-
-    private void setupRecyclerView() {
-        adapter = new TransactionAdapter(new ArrayList<>());
-        binding.recyclerViewRecent.setLayoutManager(new LinearLayoutManager(getContext()));
-        binding.recyclerViewRecent.setAdapter(adapter);
-    }
-
-    private void setupTrendChartControls() {
-        // Date range dropdown
-        List<String> dateRanges = new ArrayList<>();
-        dateRanges.add("Last 7 days");
-        dateRanges.add("Last 30 days");
-        dateRanges.add("This month");
-        ArrayAdapter<String> dateAdapter = new ArrayAdapter<>(requireContext(), android.R.layout.simple_dropdown_item_1line, dateRanges);
-        dropdownTrendDateRange.setAdapter(dateAdapter);
-        dropdownTrendDateRange.setThreshold(0);
-        dropdownTrendDateRange.setOnFocusChangeListener((v, hasFocus) -> { if (hasFocus) dropdownTrendDateRange.showDropDown(); });
-        dropdownTrendDateRange.setText(dateRanges.get(0), false);
-        dropdownTrendDateRange.setOnItemClickListener((parent, view, position, id) -> updateTrendChartQuery());
-        dropdownTrendCategory.setOnItemClickListener((parent, view, position, id) -> updateTrendChartQuery());
     }
 
     private void updateTrendChartQuery() {
@@ -263,6 +296,8 @@ public class HomeFragment extends Fragment {
         String userId = FirebaseAuth.getInstance().getUid();
         if (userId != null) {
             viewModel.getTransactionsForUser(userId);
+            categoryViewModel.loadCategories();
+            goalViewModel.getGoalsForUser(userId);
         }
     }
 
